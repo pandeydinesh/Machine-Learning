@@ -1,19 +1,19 @@
 # Machine-Learning(Face recognition Project)
-All about Face detection:
+#All about Face detection:
 
-The following set of Codes is used to create a dataset file of images of different users whose image is being captured:
+#The following set of Codes is used to create a dataset file of images of different users whose image is being captured:
 
 
 
 
 import cv2
-cam = cv2.VideoCapture(0)
-detector=cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+cam = cv2.VideoCapture(0) # here 0 is used for capturing the images through front camera.
+detector=cv2.CascadeClassifier('haarcascade_frontalface_default.xml') # This file is used to use the haarcascade library for face detection.
 
 Id= input('enter your id')
-sampleNum=0
+sampleNum=0 # The image capturing starts from 0.
 while(True):
-    ret, img = cam.read()
+    ret, img = cam.read() # used to save the read image.
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = detector.detectMultiScale(gray, 1.3, 5)
     for (x,y,w,h) in faces:
@@ -32,7 +32,7 @@ while(True):
     elif sampleNum>20:
         break
 cam.release()
-cv2.destroyAllWindows()
+cv2.destroyAllWindows() # used to turn off the camera once the images is captured upto 20.
 
 
 
