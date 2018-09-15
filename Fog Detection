@@ -1,0 +1,138 @@
+import scipy #import scipy module for scientific computation
+from sklearn.decomposition import PCA# importing principal component analysis module
+from scipy import misc #for file handling
+import glob #finding pathname of file
+import sys #to access the operating system components
+import numpy as np #for matrix calculations
+import cv2 # opencv for image processing
+import os #operating system acess
+from sklearn import svm # using SVM algorithm from sklearn module
+from sklearn.metrics import confusion_matrix #confusion matrix to check accuracy
+import logging #logging module provides printing along with the time and date
+
+os.chdir('C:\\Users\\Rahul\\Downloads\\fog\\fog\\frida-crop')#changing directory for accessing training images
+import pdb
+
+image = [] #creating empty list for storing images
+labs = []#creating empty list for storing labels
+
+i = 0 #forn counting
+# To enable debug prints
+logging.basicConfig(format='[%(asctime)s %(levelname)8s] %(message)s')
+
+logger = logging.getLogger(__name__).setLevel(logging.INFO)
+
+# Default classifcation case is : 0 for clear image, 1 for foggy image
+fog_classification = True # enable to have classification for fog as well
+
+for image_path in glob.glob("*"):
+    print(image_path)
+    rgb = misc.imread(image_path)#reading as rgb
+    gray = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY)#converting to gray
+    gray = cv2.resize(gray, (640, 480))
+
+    g_kernel = cv2.getGaborKernel((21, 21), 8.0, np.pi/4, 10.0, 0.5, 0, ktype=cv2.CV_32F)
+    gray = cv2.filter2D(gray, cv2.CV_8UC3, g_kernel)#applying gabor kernel it is a bandpass filter
+
+    width, height = len(gray), len(gray[0])
+
+    N = 640
+    w = np.hanning(N)#hanning window
+    scale = 1/(width*height)
+    gray = np.fft.fft2(gray*w)#converting to fourier transform
+    gray = abs(gray * scale)
+
+    image.append(gray)#appending all grayscale fft converted array to image list
+    i += 1
+
+    '''
+    - 66 png images named LIma-0000??.png of scenes without fog. These images can be used
+    as ground-truth for evaluation of visibility and contrast restoration algorithms.
+    - 66 png images named U080-0000??.png of scenes with homogeneous fog.
+    - 66 png images named K080-0000??.png of scenes with heterogeneous fog.
+    - 66 png images named L080-0000??.png of scenes with cloudy homogeneous fog.
+    - 66 png images named M080-0000??.png of scenes with cloudy heterogeneous fog.
+    '''
+    
+    if ('LIma' in os.path.basename(image_path)):
+    	labs.extend([0])
+    	print('Lima',i+1)#lima contains non foggy images labelled as 0
+    	
+    elif ('KIma' in os.path.basename(image_path)):
+    	labs.extend([0])#all other name contains foggy images labelled as 1
+    	
+    elif ('FIma' in os.path.basename(image_path)):
+    	labs.extend([1])
+    	print('Fima',i+1)
+    elif ('JIma' in os.path.basename(image_path)):
+    	labs.extend([1])
+    	print('Jima',i+1)
+    elif ('SIma' in os.path.basename(image_path)):
+    	labs.extend([1])
+    	print('Sima',i+1)
+labs=np.asarray(labs)#taking as numpy array converting from list to np array
+indices = np.random.permutation(len(labs))#random shuffling of labs array
+logging.getLogger(__name__).debug(labs)
+logging.getLogger(__name__).debug('image shape: {}'.format(len(image)))
+#pdb.set_trace()
+X = np.asarray(image) #image also taking as nparray
+X = X.reshape(X.shape[0], -1) #reshaping to pass into PCA
+logging.info('Shape of the original data is {}'.format(X.shape))
+
+n_comp = 8
+
+_pca = PCA(n_components=n_comp, whiten=True)
+_pca.fit(X[0:55]);
+
+X_train = X[indices[0:55]]#spliting training set
+labs_tr = labs[indices[0:55]]#labellingg training set
+X_test = X[indices[55:58]]#splitting testing set
+labs_te = labs[indices[55:58]]#labellingg testing set
+
+X_train = _pca.transform(X_train)#traing data is converting into 1-Darray
+clf = svm.SVC()#opening SVM classifier function
+clf.fit(X_train, labs_tr)#passing training values to svm
+
+X_test = _pca.transform(X_test)#Tesing data converting into 1-D array
+logging.getLogger(__name__).info('Shape of the test data after transform is : {}'.format(X_test.shape))
+
+labs_pred = clf.predict(X_test)#predicting or checking the accuracy of algorithm with testing data
+cm = confusion_matrix(labs_te, labs_pred)#confusion matrix to check how many predictions are correct or wrong
+logging.getLogger(__name__).info(('Confusion matrix: \n {}'.format(cm)))
+
+#---------------Real life image---------#
+os.chdir('C:\\Users\\Rahul\\Downloads\\fog\\fog\\frida-crop-test')
+test_image = []
+
+for image_path in glob.glob("*"):
+    rgb = misc.imread(image_path)
+    gray = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY)
+    gray = cv2.resize(gray, (640, 480))
+    
+
+    g_kernel = cv2.getGaborKernel((21, 21), 8.0, np.pi/4, 10.0, 0.5, 0, ktype=cv2.CV_32F)
+    gray = cv2.filter2D(gray, cv2.CV_8UC3, g_kernel)
+
+    width, height = len(gray), len(gray[0])
+
+    N = 640
+    w = np.hanning(N)
+    scale = 1/(width*height)
+    gray = np.fft.fft2(gray*w)
+    gray = abs(gray * scale)
+
+    test_image.append(gray)
+
+labs_r = [1, 0,]
+X = np.asarray(test_image)
+X = X.reshape(X.shape[0], -1)
+
+X_test = _pca.transform(X)
+print(X_test.shape)
+logging.getLogger(__name__).info('Shape of the real life test data after transform is : {}'.format(X_test.shape))
+
+labs_test = clf.predict(X_test)
+print(labs_test)
+#cm = confusion_matrix(labs_r, labs_test)
+#logging.getLogger(__name__).info(('Labels: (Real life case) \n {}'.format(labs_test)))
+
