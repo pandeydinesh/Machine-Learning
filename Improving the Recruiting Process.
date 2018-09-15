@@ -1,0 +1,260 @@
+# importing all the required libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+plt.rc("font", size=14)
+from sklearn.linear_model import LogisticRegression
+from numpy import cov
+from sklearn.cross_validation import train_test_split
+from sklearn import preprocessing
+import seaborn as snsimport numpy as np# linear algebra
+import pandas as pd# data processing, CSV file I/O (e.g. pd.read_csv)
+import seaborn as sns
+import matplotlib.pyplot as plt#matplotlib is used for plot the graphs,
+%matplotlib inline
+fromsklearn.model_selectionimporttrain_test_split
+from sklearn.neighbors import KNeighborsClassifier
+sns.set(style="white")
+sns.set(style="whitegrid", color_codes=True)
+
+
+#reading the file
+data=pd.read_excel(r'C:\Users\User\Desktop\ML\Project\REPORT.xls')
+
+
+#dropping the rows of target variable having other values than joined or dropped.
+data=data.drop(data.index[[14,69,83,88,90,91,93,101,103,106,109,110,113,115,116,125]])
+
+# extracting the values in Status column
+data['Status'].unique()
+
+
+#finding the missing values in data
+data.isnull().sum()
+
+#extracting the columns 
+data.columns
+
+#Extracting the type of data values
+data.dtypes
+
+
+data.Requirement.value_counts()
+
+#converting the column head into readable format.
+data['Preferredloc']=data['Preferred Location']
+data['Workloc']=data['Work Location']
+data['Totexp']=data['Tot.Exp']
+data['Currentloc']=data['Current Location']
+
+
+#save the taget variable in Y.
+Y=data['Status']
+
+
+Y.unique()
+
+data['Current Location'].unique()
+
+
+#converting the Worklocation values into numbers as logistic regression does not accept strings or other data types.
+data.Workloc[data.Workloc=='Cyberjaya'] = 1
+data.Workloc[data.Workloc=='Chennai'] = 2
+data.Workloc[data.Workloc=='Bangalore'] = 3
+data.Workloc[data.Workloc=='Mysore'] = 4
+data.Workloc[data.Workloc=='Hyderabad'] = 5
+data.Workloc[data.Workloc=='Dharmapuri'] = 6
+data.Workloc[data.Workloc=='Coimbatore'] = 7
+data.Workloc[data.Workloc=='Noida'] = 8
+data.Workloc[data.Workloc=='Shimla'] = 9
+data.Workloc[data.Workloc=='Bhopal'] = 10
+data.Workloc[data.Workloc=='Gurgaon'] = 11
+data.Workloc[data.Workloc=='Kuala Lumpur'] = 12
+data.Workloc[data.Workloc=='New Delhi'] = 13
+data.Workloc[data.Workloc=='nan'] = 14
+data.Workloc[data.Workloc=='Ganjam'] = 15
+data.Workloc[data.Workloc=='Malaysia'] = 16
+
+
+#converting string values into integer
+data.Totexp[data.Totexp=='1.4 Years'] = 1.4
+
+
+#converting string values into numbers
+data.Currentloc[data.Currentloc=='Selangor'] = 1
+data.Currentloc[data.Currentloc=='Chennai'] = 2
+data.Currentloc[data.Currentloc=='Bangalore'] = 3
+data.Currentloc[data.Currentloc=='Hyderabad'] = 4
+data.Currentloc[data.Currentloc=='Kuala Lumpur'] = 5
+data.Currentloc[data.Currentloc=='Cyberjaya'] = 6
+data.Currentloc[data.Currentloc=='Coimbatore'] = 7
+data.Currentloc[data.Currentloc=='Noida'] = 8
+data.Currentloc[data.Currentloc=='Shimla'] = 9
+data.Currentloc[data.Currentloc=='Melaka'] = 10
+data.Currentloc[data.Currentloc=='pahang'] = 11
+data.Currentloc[data.Currentloc=='Gurgaon'] = 12
+data.Currentloc[data.Currentloc=='Mysore'] = 13
+data.Currentloc[data.Currentloc=='nan'] = 14
+data.Currentloc[data.Currentloc=='China'] = 15
+data.Currentloc[data.Currentloc=='Malaysia'] = 16
+
+
+
+#converting values into integers.
+data.Preferredloc[data.Preferredloc=='Cyberjaya'] = 1
+data.Preferredloc[data.Preferredloc== 'Chennai'] = 2
+data.Preferredloc[data.Preferredloc== 'Bangalore'] = 3
+data.Preferredloc[data.Preferredloc== 'Mysore'] = 4
+data.Preferredloc[data.Preferredloc== 'Hyderabad'] = 5
+data.Preferredloc[data.Preferredloc== 'Dharmapuri'] = 6
+data.Preferredloc[data.Preferredloc== 'Kuala Lumpur'] =7
+data.Preferredloc[data.Preferredloc== 'Coimbatore'] = 8
+data.Preferredloc[data.Preferredloc== 'Noida'] = 9
+data.Preferredloc[data.Preferredloc== 'Shimla'] = 10
+data.Preferredloc[data.Preferredloc== 'Krishna'] = 11
+data.Preferredloc[data.Preferredloc== 'nan'] = 12
+data.Preferredloc[data.Preferredloc== 'Bhopal'] = 13
+data.Preferredloc[data.Preferredloc== 'Gurgaon'] = 14
+data.Preferredloc[data.Preferredloc== 'China'] = 15
+data.Preferredloc[data.Preferredloc== 'New Delhi'] = 16
+data.Preferredloc[data.Preferredloc== 'Ganjam'] = 17
+data.Preferredloc[data.Preferredloc== 'Malaysia'] = 18
+
+
+# extracting if any missing values is present in data
+data['Age'].isnull().sum()
+
+# Computing the mean of the data
+data['Age'].mean()
+
+#filling missing values with the mean of Age column.
+data['Age']=data['Age'].fillna(28)
+
+#replacing all the missing values in the data with 0.
+data = data.replace(np.nan, 0)
+
+
+#ensuring no missing values is present in our data.
+data.isnull().sum()
+
+
+#incase if any missing values is present then filling it with value 0.
+data.fillna(0)
+
+
+
+#converting the values in target column into binary form integers.
+data.Status[data.Status== 'Joined'] = 1
+data.Status[data.Status== 'Dropped'] = 0
+
+
+Y.unique()
+
+#importing logistic regression
+from sklearn.linear_model import LogisticRegression
+regressor=LogisticRegression()
+
+#importing the required libraries.
+from sklearn import datasets
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+
+
+#assigning the required columns to our X.
+X=data[['Totexp', 'Age', 'Preferredloc', 'Workloc','Currentloc','Salary','Expected CTC','Offered CTC']]
+
+
+#converting the string values into integers.
+X.Salary[X.Salary=='3000rm'] = 3000
+X.Salary[X.Salary=='2500rm'] = 2500
+X.Salary[X.Salary=='3800rm'] = 3800
+X.Salary[X.Salary=='4500rm'] = 4500
+
+#converting the X values into integer
+X.astype(int)
+
+
+##converting the Y values into integer
+Y=Y.astype(int)
+
+#importing the required libraries for feature extraction
+from sklearn import datasets
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+
+#extracting 6 influencing predictors on out target.
+logreg = LogisticRegression()
+rfe = RFE(logreg,6)
+rfe = rfe.fit(X,Y)
+print(rfe.support_)
+print(rfe.ranking_)
+
+
+#fitting the algorithm to our X and Y.
+rfe = rfe.fit(X,Y)
+print(rfe.support_)
+print(rfe.ranking_)
+
+#converting the Y values into integers.
+Y.astype(int)
+
+#importing statsmodel inorder to fit OLS on our data
+import statsmodels.api as sm
+logit_model=sm.Logit(Y,X)
+result=logit_model.fit()
+print(result.summary())
+
+
+#splitting data into train and test set and fitting the algorithm.
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, random_state=0)
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+logreg = LogisticRegression()
+logreg.fit(X_train, y_train)
+
+
+
+#predicting on Y_test based on x_test data
+y_pred = logreg.predict(X_test)
+print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, y_test)))
+
+
+
+#using K-Fold Classification on our dataset for test the accuracy
+from sklearn import model_selection
+from sklearn.model_selection import cross_val_score
+kfold = model_selection.KFold(n_splits=10, random_state=7)
+modelCV = LogisticRegression()
+scoring = 'accuracy'
+results = model_selection.cross_val_score(modelCV, X_train, y_train, cv=kfold, scoring=scoring)
+print("10-fold cross validation average accuracy: %.3f" % (results.mean()))
+
+
+
+#using confusion matrix for checking the accuracy
+from sklearn.metrics import confusion_matrix
+confusion_matrix = confusion_matrix(y_test, y_pred)
+print(confusion_matrix)
+
+
+
+
+# plotting the ROC curve on our data to check how well our model fits the data.
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+logit_roc_auc = roc_auc_score(y_test, logreg.predict(X_test))
+fpr, tpr, thresholds = roc_curve(y_test, logreg.predict_proba(X_test)[:,1])
+plt.figure()
+plt.plot(fpr, tpr, label='Logistic Regression (area = %0.2f)' % logit_roc_auc)
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic')
+plt.legend(loc="lower right")
+plt.savefig('Log_ROC')
+plt.show()
+
+
+
